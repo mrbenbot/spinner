@@ -1,0 +1,46 @@
+.container {
+  padding: 1em;
+}
+
+.spinnerContainer {
+  --size: 500px;
+  position: relative;
+  background-image: radial-gradient(gold, red);
+  height: var(--size);
+  width: var(--size);
+  border-radius: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid rgba(0, 0, 0, 0.6);
+}
+.section {
+  position: absolute;
+  font-weight: bold;
+  transform: rotate(var(--rotation));
+}
+.section::before {
+  content: attr(data-name);
+  position: absolute;
+  left: 100px;
+  width: 150px;
+  top: 10px;
+  /* transform: rotate(calc(var(--rotation))); */
+}
+.section::after {
+  content: "";
+  position: absolute;
+  top: -1px;
+  height: 2px;
+  width: calc(var(--size) / 2);
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+.percentage {
+  position: absolute;
+  top: 25%;
+}
+
+.arrow {
+  height: 50px;
+}

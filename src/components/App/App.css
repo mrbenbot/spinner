@@ -1,0 +1,7 @@
+.App {
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  background-image: linear-gradient(orange, lightblue);
+  min-height: 100vh;
+}
