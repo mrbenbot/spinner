@@ -1,88 +1,45 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
-import cn from "classnames";
 
 import arrow from "../../download.svg";
 import css from "./Spinner.module.css";
+import { getRandomNumber } from "../../libs";
 
-const initialState = [
-  "person 1",
-  "person 2",
-  "person 3",
-  "person 4",
-  "person 5",
-  "person 6",
-  "person 7",
-  "person 8",
-  "person 9",
-  "person 10",
-  "person 11",
-  "person 12",
-  "person 13",
-].sort(() => Math.random() - 0.5);
-
-const useRandomiser = ({ min, max }) => {
-  const [value, setValue] = useState(0);
-  const spin = () => {
-    setValue(value + Math.random() * (max - min) + min);
+function isInSegment(numOptions, rotation) {
+  return (_, i) => {
+    const lowerBound = Math.round((360 / numOptions) * i);
+    const upperBound = Math.round((360 / numOptions) * (i + 1));
+    return rotation >= lowerBound && rotation < upperBound;
   };
-  return [value, spin];
-};
+}
+function getRotation(degrees) {
+  const realRotation = Math.floor(270 - (degrees % 360));
+  return realRotation < 0 ? realRotation + 360 : realRotation;
+}
 
-function Spinner({ addToList }) {
-  const [degrees, spin] = useRandomiser({ min: 1080, max: 5000 });
-  const [rotation, setRotation] = useState(270);
-  const [selection, setSelection] = useState(-1);
-  const [bootcampers, setBootcampers] = useState(initialState);
+function Spinner({ handleSelection, options }) {
+  const [degrees, setDegrees] = useState(0);
+  const [selected, setSelected] = useState(-1);
   const [hasSpun, setHasSpun] = useState(false);
 
-  useEffect(() => {
-    const realRotation = Math.floor(270 - (degrees % 360));
-    setRotation(realRotation < 0 ? realRotation + 360 : realRotation);
-  }, [degrees]);
-
-  useEffect(() => {
-    if (hasSpun) {
-      setSelection(
-        bootcampers.findIndex((_, i) => {
-          const lowerBound = Math.round((360 / bootcampers.length) * i);
-          const upperBound = Math.round((360 / bootcampers.length) * (i + 1));
-          return rotation >= lowerBound && rotation < upperBound;
-        })
-      );
-    }
-  }, [rotation]);
-
-  useEffect(() => {
-    if (!bootcampers.length) {
-      setTimeout(() => {
-        setHasSpun(false);
-        setBootcampers(initialState);
-      }, 1000);
-    }
-  }, [bootcampers, hasSpun]);
+  function spin() {
+    if (!options.length) return;
+    const newDegrees = degrees + getRandomNumber({ min: 1080, max: 5400 });
+    const { title } = options.find(
+      isInSegment(options.length, getRotation(newDegrees))
+    );
+    setSelected(title);
+    setDegrees(newDegrees);
+    if (!hasSpun) setHasSpun(true);
+  }
 
   function handleAnimationEnd() {
-    if (hasSpun) {
-      setSelection(-1);
-      addToList(bootcampers[selection]);
-      setBootcampers(
-        [
-          ...bootcampers.slice(0, selection),
-          ...bootcampers.slice(selection + 1)
-        ].sort(() => Math.random() - 0.5)
-      );
-    }
+    if (!hasSpun) return;
+    handleSelection(selected);
   }
 
   return (
-    <div
-      className={css.container}
-      onClick={() => {
-        setHasSpun(true);
-        spin();
-      }}
-    >
+    <div className={css.container} onClick={spin}>
       <img className={css.arrow} src={arrow} alt="arrow" />
       <motion.div
         className={css.spinnerContainer}
@@ -90,21 +47,21 @@ function Spinner({ addToList }) {
         transition={{
           type: "spring",
           damping: 100,
-          stiffness: 100
+          stiffness: 100,
         }}
         onAnimationComplete={handleAnimationEnd}
       >
-        {bootcampers.map((name, i) => {
+        {options.map(({ title }, i) => {
           return (
             <motion.div
-              className={cn(css.section)}
-              key={name}
+              className={css.section}
+              key={title}
               style={{
-                "--rotation": `${Math.round((360 / bootcampers.length) * i)}deg`
+                "--rotation": `${Math.round((360 / options.length) * i)}deg`,
               }}
-              animate={{ color: i === selection ? "#ffffff" : "#000000" }}
+              animate={{ color: title === selected ? "#ffffff" : "#000000" }}
               transition={{ delay: 1, duration: 0.4 }}
-              data-name={name}
+              data-name={title}
             ></motion.div>
           );
         })}

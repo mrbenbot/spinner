@@ -1,0 +1,18 @@
+.list {
+  text-align: left;
+  font-size: 1.4em;
+  width: 100%;
+  list-style: none;
+  padding: 0;
+}
+.list > li {
+}
+
+.list label {
+  display: inline-block;
+  width: 100%;
+}
+
+.list input[type="checkbox"] {
+  margin-right: 1em;
+}

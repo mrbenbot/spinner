@@ -1,21 +1,80 @@
 import React, { useState } from "react";
 import "./App.css";
 import Spinner from "../Spinner";
+import List from "../List";
+
+const possibleOptions = [
+  "Ben",
+  "Banwo",
+  "Liz",
+  "Joe",
+  "Tao",
+  "Mell",
+  "Lizzie",
+  "Chris",
+  "Patrick",
+  "Sarah",
+];
 
 function App() {
-  const [pickedList, setPickedList] = useState([]);
+  const [options, setOptions] = useState(
+    possibleOptions.map((title) => ({ title, spinnable: true }))
+  );
+  const [lastSelected, setLastSelected] = useState("");
+  const [isOptionsBeingEdited, setIsOptionsBeingEdited] = useState(false);
+  const [optionsRawText, setOptionsRawText] = useState("");
 
-  function addToList(name) {
-    setPickedList([...pickedList, name]);
+  function handleSelection(title) {
+    setLastSelected(title);
   }
+
+  function toggleSpinnable(i) {
+    setOptions([
+      ...options.slice(0, i),
+      { ...options[i], spinnable: !options[i].spinnable },
+      ...options.slice(i + 1),
+    ]);
+  }
+
+  function handleEdit() {
+    setIsOptionsBeingEdited(!isOptionsBeingEdited);
+    if (isOptionsBeingEdited) {
+      return setOptions(
+        optionsRawText.split(`\n`).reduce((acc, title) => {
+          if (title.trim()) {
+            return [...acc, { title, spinnable: true }];
+          }
+          return acc;
+        }, [])
+      );
+    }
+    return setOptionsRawText(`${options.map(({ title }) => title).join(`\n`)}`);
+  }
+
   return (
     <div className="App">
-      <Spinner addToList={addToList} />
-      <ul>
-        {pickedList.map(name => (
-          <li key={name}>{name}</li>
-        ))}
-      </ul>
+      <Spinner
+        handleSelection={handleSelection}
+        options={options.filter(({ spinnable }) => spinnable)}
+      />
+      <div>
+        <h1>
+          Options<button onClick={handleEdit}>edit</button>
+        </h1>
+        {isOptionsBeingEdited ? (
+          <textarea
+            onChange={({ target }) => setOptionsRawText(target.value)}
+            rows={options.length}
+            value={optionsRawText}
+          ></textarea>
+        ) : (
+          <List
+            options={options}
+            lastSelected={lastSelected}
+            toggleSpinnable={toggleSpinnable}
+          />
+        )}
+      </div>
     </div>
   );
 }
