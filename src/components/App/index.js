@@ -3,26 +3,38 @@ import "./App.css";
 import Spinner from "../Spinner";
 import List from "../List";
 
-const possibleOptions = [
+import { arrayFromRawText } from "../../libs";
+import { useEffect } from "react";
+
+const defaultOptions = [
   "Ben",
-  "Banwo",
-  "Liz",
+  "Liz.K",
   "Joe",
   "Tao",
   "Mell",
-  "Lizzie",
+  "Liz.E",
   "Chris",
-  "Patrick",
-  "Sarah",
-];
+  "James",
+  "Tim",
+  "Kyle",
+]
+  .sort()
+  .map((title) => ({
+    title,
+    spinnable: true,
+  }));
 
 function App() {
   const [options, setOptions] = useState(
-    possibleOptions.map((title) => ({ title, spinnable: true }))
+    () => JSON.parse(localStorage.getItem("options")) || defaultOptions
   );
   const [lastSelected, setLastSelected] = useState("");
   const [isOptionsBeingEdited, setIsOptionsBeingEdited] = useState(false);
   const [optionsRawText, setOptionsRawText] = useState("");
+
+  useEffect(() => {
+    localStorage.setItem("options", JSON.stringify(options));
+  }, [options]);
 
   function handleSelection(title) {
     setLastSelected(title);
@@ -39,33 +51,7 @@ function App() {
   function handleEdit() {
     setIsOptionsBeingEdited(!isOptionsBeingEdited);
     if (isOptionsBeingEdited) {
-      return setOptions(
-        optionsRawText.split(`\n`).reduce((acc, title) => {
-          const trimmed = title.trim();
-          const numDupes = acc.filter(
-            (option) => option.title.split("(")[0] === title
-          ).length;
-          if (trimmed) {
-            if (numDupes > 0) {
-              return [
-                ...acc,
-                {
-                  title: `${trimmed}(${numDupes})`,
-                  spinnable: true,
-                },
-              ];
-            }
-            return [
-              ...acc,
-              {
-                title: trimmed,
-                spinnable: true,
-              },
-            ];
-          }
-          return acc;
-        }, [])
-      );
+      return setOptions(arrayFromRawText(optionsRawText));
     }
     return setOptionsRawText(`${options.map(({ title }) => title).join(`\n`)}`);
   }
@@ -77,9 +63,20 @@ function App() {
         options={options.filter(({ spinnable }) => spinnable)}
       />
       <div>
-        <h1>
-          Options<button onClick={handleEdit}>edit</button>
-        </h1>
+        <div>
+          <h1>Options</h1>
+          <button onClick={handleEdit}>
+            {isOptionsBeingEdited ? "save" : "edit"}
+          </button>
+          <button
+            onClick={() => {
+              setIsOptionsBeingEdited(false);
+              setOptions(defaultOptions);
+            }}
+          >
+            reset to default
+          </button>
+        </div>
         {isOptionsBeingEdited ? (
           <textarea
             onChange={({ target }) => setOptionsRawText(target.value)}
